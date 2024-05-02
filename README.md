@@ -1,8 +1,8 @@
-# Web API pro odesílání e-mailù
+# Web API pro odesÃ­lÃ¡nÃ­ e-mailÅ¯ z kontaktnÃ­ch formulÃ¡Å™Å¯ 
 
-Toto Web API poskytuje rozhraní pro odesílání e-mailù prostøednictvím HTTP poadavkù. Aplikace má vlastní e-mailovou slubou a umoòuje klientùm snadnı zpùsob odesílání e-mailovıch zpráv.
+Toto Web API poskytuje rozhranÃ­ pro odesÃ­lÃ¡nÃ­ e-mailÅ¯ z kontaktnÃ­ch formulÃ¡Å™Å¯ prostÅ™ednictvÃ­m HTTP poÅ¾adavkÅ¯. Aplikace mÃ¡ vlastnÃ­ e-mailovou sluÅ¾bou a umoÅ¾Åˆuje klientÅ¯m snadnÃ½ zpÅ¯sob odesÃ­lÃ¡nÃ­ e-mailovÃ½ch zprÃ¡v.
 
-Naprogramováno v jazyce C# v prostøedí Microsoft .NET 8
+NaprogramovÃ¡no v jazyce C# v prostÅ™edÃ­ Microsoft .NET 8
 
 - Server - ASP.NET Core
 - API - Minimal API
