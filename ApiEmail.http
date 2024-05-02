@@ -1,0 +1,14 @@
+@ApiEmail_HostAddress = https://localhost:7181
+
+POST {{ApiEmail_HostAddress}}/
+Content-Type: application/json
+
+{
+  "FirstName": "John",
+  "LastName": "Doe",
+  "Subject": "Test Email",
+  "Message": "This is a test email message.",
+  "Address": "john.doe@example.com"
+}
+
+###

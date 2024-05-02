@@ -1,0 +1,14 @@
+version: "3"
+  
+services:   
+  api-email:
+    container_name: api-email
+    image: dockerhub.petrmikolas.cz/apiemail:latest 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - LANG=C.UTF-8         
+    restart: unless-stopped 
+    ports:   
+       - 4600:8080  
+       - 4601:8081 
+    network_mode: bridge 
