@@ -7,3 +7,4 @@ Naprogramováno v jazyce C# v prostředí Microsoft .NET 8
 - Server - ASP.NET Core
 - API - Minimal API
 - API dokumentace - OpenAPI
+- Sledování chyb - Sentry
