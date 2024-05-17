@@ -31,8 +31,9 @@ public static class ApiEmailsRegistrationExtensions
 
                 return Results.NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                app.Logger.LogError(ex.ToString());
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         })
@@ -40,7 +41,8 @@ public static class ApiEmailsRegistrationExtensions
         .WithName("SendEmail")
         .WithOpenApi(operation => new(operation) { Summary = "Send an email" })
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status400BadRequest);
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status500InternalServerError);
 
         return app;
     }
