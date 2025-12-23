@@ -52,7 +52,7 @@ jobs:
           /usr/local/bin/docker-compose -f compose.yaml down || true
 
           echo "Removing orphaned containers"
-          /usr/local/bin/docker ps -aq --filter "name=apie-email" | xargs -r /usr/local/bin/docker rm || true
+          /usr/local/bin/docker ps -aq --filter "name=api-email" | xargs -r /usr/local/bin/docker rm || true
 
           echo "Removing old Docker images"
           old_images=$(/usr/local/bin/docker images -q dockerhub.petrmikolas.cz/apiemail:latest)
