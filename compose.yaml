@@ -11,4 +11,6 @@ services:
     ports:   
        - 4600:8080  
        - 4601:8081 
+    volumes:     
+     - ./appsettings.Production.json:/app/appsettings.Production.json:ro
     network_mode: bridge 
