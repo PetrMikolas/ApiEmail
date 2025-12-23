@@ -1,4 +1,5 @@
 ﻿using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
@@ -49,17 +50,24 @@ internal sealed class EmailService : IEmailService
         return new EmailOptions();
     }
 
-    public async Task SendEmailAsync(string message, string address, string name, string subject = "", TextFormat textFormat = TextFormat.Plain, CancellationToken cancellationToken = default)
+    public async Task SendEmailAsync(
+        string messageBody, 
+        string senderAddress, 
+        string senderName, 
+        string subject = "", 
+        string? fromName = null, 
+        TextFormat textFormat = TextFormat.Plain, 
+        CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(message);
-        ArgumentException.ThrowIfNullOrEmpty(address);
-        ArgumentException.ThrowIfNullOrEmpty(name);
+        ArgumentException.ThrowIfNullOrEmpty(messageBody);
+        ArgumentException.ThrowIfNullOrEmpty(senderAddress);
+        ArgumentException.ThrowIfNullOrEmpty(senderName);
 
         var mimeMessage = new MimeMessage();
-        mimeMessage.From.Add(new MailboxAddress(_options.FromName, _options.FromEmailAddress));
-        mimeMessage.To.Add(new MailboxAddress(_options.FromName, _options.FromEmailAddress));
+        mimeMessage.From.Add(new MailboxAddress(fromName ?? _options.FromName, _options.FromEmailAddress));
+        mimeMessage.To.Add(new MailboxAddress(_options.FromName, _options.AdminEmailAddress));        
         mimeMessage.Subject = !string.IsNullOrEmpty(subject) ? subject : _options.DefaultSubject;
-        mimeMessage.Body = new TextPart(textFormat) { Text = GetMessageBody(message, name, address) };
+        mimeMessage.Body = new TextPart(textFormat) { Text = GetTextBody(messageBody, senderName, senderAddress) };
 
         if (!string.IsNullOrEmpty(_options.BccEmailAddress))
         {
@@ -69,7 +77,7 @@ internal sealed class EmailService : IEmailService
         try
         {
             using var smtpClient = new SmtpClient();
-            await smtpClient.ConnectAsync(_options.SmtpHost, _options.SmtpPort, _options.SmtpUseSsl, cancellationToken);
+            await smtpClient.ConnectAsync(_options.SmtpHost, _options.SmtpPort, GetSecureSocketOption(_options.SmtpPort), cancellationToken);
             await smtpClient.AuthenticateAsync(_options.SmtpUserName, _options.SmtpPassword, cancellationToken);
             await smtpClient.SendAsync(mimeMessage, cancellationToken);
             await smtpClient.DisconnectAsync(true, cancellationToken);
@@ -81,25 +89,37 @@ internal sealed class EmailService : IEmailService
         }
     }
 
+    private static SecureSocketOptions GetSecureSocketOption(int smtpPort)
+    {
+        return smtpPort switch
+        {
+            25 => SecureSocketOptions.StartTlsWhenAvailable,
+            465 => SecureSocketOptions.SslOnConnect,
+            587 => SecureSocketOptions.StartTls,
+            _ => SecureSocketOptions.Auto
+        };
+    }
+
     /// <summary>
-    /// Creates the body of the email message with the sender's information and message content.
+    /// Creates a plain text body of the email message including sender information and message content.
     /// </summary>
     /// <param name="message">The main content of the email message.</param>
     /// <param name="name">The name of the sender.</param>
     /// <param name="address">The email address of the sender.</param>
-    /// <returns>The formatted email message body.</returns>
-    private string GetMessageBody(string message, string name, string address)
+    /// <returns>A formatted plain text email body.</returns>
+    private static string GetTextBody(string message, string name, string address)
     {
-        // Format the email message body with sender's information and message content
-        var formattedMessage = new StringBuilder();
-        formattedMessage.AppendLine("Odesílatel:");
-        formattedMessage.AppendLine(name);
-        formattedMessage.AppendLine(address);
-        formattedMessage.AppendLine();
-        formattedMessage.AppendLine(message);
+        var bodyBuilder = new StringBuilder();
 
-        return formattedMessage.ToString();
+        bodyBuilder.AppendLine("Odesílatel:");
+        bodyBuilder.AppendLine(name);
+        bodyBuilder.AppendLine(address);
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine(message);
+
+        return bodyBuilder.ToString();
     }
+
 
     /// <summary>
     /// Represents the configuration options for the email service.
@@ -122,12 +142,6 @@ internal sealed class EmailService : IEmailService
         /// </summary>
         [Required]
         public int SmtpPort { get; init; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether SSL/TLS should be used for SMTP.
-        /// </summary>
-        [Required]
-        public bool SmtpUseSsl { get; init; }
 
         /// <summary>
         /// Gets or sets the SMTP username.

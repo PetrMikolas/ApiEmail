@@ -13,19 +13,20 @@ public static class ApiEmailsRegistrationExtensions
     /// <returns>The web application with mapped endpoint for sending emails.</returns>
     public static WebApplication MapEndpointsEmails(this WebApplication app)
     {
-        app.MapPost("", async ([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] EmailDto emailDto, [FromServices] IEmailService emailService, CancellationToken cancellationToken) =>
+        app.MapPost("", async ([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] EmailRequest request, [FromServices] IEmailService emailService, CancellationToken cancellationToken) =>
         {
-            if (!IsValidEmailDto(emailDto, out string error))
+            if (!IsValidEmailRequest(request, out string error))
             {
                 return Results.BadRequest(error);
             }
 
             try
             {
-                await emailService.SendEmailAsync(emailDto.Message,
-                                                  emailDto.Address,
-                                                  $"{emailDto.FirstName} {emailDto.LastName}",
-                                                  emailDto.Subject,
+                await emailService.SendEmailAsync(request.MessageBody,
+                                                  request.SenderAddress,
+                                                  $"{request.SenderFirstName} {request.SenderLastName}",
+                                                  request.Subject,
+                                                  request.FromName,
                                                   MimeKit.Text.TextFormat.Plain,
                                                   cancellationToken);
 
@@ -48,58 +49,61 @@ public static class ApiEmailsRegistrationExtensions
     }
 
     /// <summary>
-    /// Validates an EmailDto object.
+    /// Validates an EmailRequest object.
     /// </summary>
-    /// <param name="emailDto">The EmailDto object to validate.</param>
+    /// <param name="request">The EmailRequest object to validate.</param>
     /// <param name="error">An error message indicating why the validation failed, if any.</param>
     /// <returns>True if the EmailDto object is valid, otherwise false.</returns>
-    internal static bool IsValidEmailDto(EmailDto? emailDto, out string error)
+    internal static bool IsValidEmailRequest(EmailRequest? request, out string error)
     {
         error = string.Empty;
 
-        if (emailDto is null)
+        if (request is null)
         {
-            error = $"HTTP Request Body musí obsahovat objekt {typeof(EmailDto).Name}.";
+            error = $"HTTP Request Body musí obsahovat objekt {typeof(EmailRequest).Name}.";
             return false;
         }
 
-        if (string.IsNullOrEmpty(emailDto.FirstName))
+        if (string.IsNullOrEmpty(request.SenderFirstName))
         {
-            error = $"Parametr <{nameof(emailDto.FirstName)}> nemůže být prázdný. ";
+            error = $"Parametr <{nameof(request.SenderFirstName)}> nemůže být prázdný. ";
         }
 
-        if (string.IsNullOrEmpty(emailDto.LastName))
+        if (string.IsNullOrEmpty(request.SenderLastName))
         {
-            error += $"Parametr <{nameof(emailDto.LastName)}> nemůže být prázdný. ";
+            error += $"Parametr <{nameof(request.SenderLastName)}> nemůže být prázdný. ";
         }
 
-        if (string.IsNullOrEmpty(emailDto.Message))
+        if (string.IsNullOrEmpty(request.MessageBody))
         {
-            error += $"Parametr <{nameof(emailDto.Message)}> nemůže být prázdný. ";
+            error += $"Parametr <{nameof(request.MessageBody)}> nemůže být prázdný. ";
         }
 
-        if (string.IsNullOrEmpty(emailDto.Address))
+        if (string.IsNullOrEmpty(request.SenderAddress))
         {
-            error += $"Parametr <{nameof(emailDto.Address)}> nemůže být prázdný.";
+            error += $"Parametr <{nameof(request.SenderAddress)}> nemůže být prázdný.";
         }
 
         return error == string.Empty;
     }
 
     /// <summary>
-    /// Represents a data transfer object (DTO) for an email.
+    /// Represents a data transfer object for sending an email via the email API.
     /// </summary>
-    /// <param name="FirstName">The first name of the sender.</param>
-    /// <param name="LastName">The last name of the sender.</param>
-    /// <param name="Subject">The subject of the email.</param>
-    /// <param name="Message">The message content of the email.</param>
-    /// <param name="Address">The email address of the sender.</param>
-    internal sealed record EmailDto
+    /// <param name="SenderFirstName">The first name of the person submitting the email (e.g., contact form sender).</param>
+    /// <param name="SenderLastName">The last name of the person submitting the email.</param>
+    /// <param name="SenderAddress">The email address of the sender.</param>
+    /// <param name="Subject">The subject of the email message.</param>
+    /// <param name="MessageBody">The body content of the email message.</param>
+    /// <param name="FromName">An optional display name used as the sender name in the email header.<br/>
+    /// Typically represents the application or website name from which the email is sent.</param>
+    internal sealed record EmailRequest
     (
-        string FirstName,
-        string LastName,
+        string SenderFirstName,
+        string SenderLastName,
+        string SenderAddress,
         string Subject,
-        string Message,
-        string Address
+        string MessageBody,
+        string? FromName
     );
 }

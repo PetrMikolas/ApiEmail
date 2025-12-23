@@ -22,7 +22,7 @@ builder.Services
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Nastavení vlastního CORS
+// Add CORS policy to allow specified origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy",
@@ -43,7 +43,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Not used in Docker – HTTPS is handled by the proxy (avoids warning or redirect loop)
+//app.UseHttpsRedirection();
+
 app.UseCors("CorsPolicy");
 
 app.MapEndpointsEmails();
