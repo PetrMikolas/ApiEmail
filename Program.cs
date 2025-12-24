@@ -1,5 +1,7 @@
 using ApiEmail.Api.Emails;
 using ApiEmail.Services.Email;
+using FluentValidation;
+using System.Reflection;
 using static ApiEmail.Services.Email.EmailService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,7 @@ builder.WebHost.UseSentry(o =>
 });
 
 // Add services to the container.
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
